@@ -104,7 +104,7 @@ def main():
     global sock, state
 
     # --------- ASK USER FOR SERVER IP ----------
-    SERVER_HOST = input("Enter server IP (e.g., 192.168.1.50): ").strip()
+    SERVER_HOST = input("Enter server IP: ").strip()
     SERVER_PORT = 5000
 
     # --------- CONNECT TO SERVER ----------
@@ -201,8 +201,6 @@ def main():
             # Replace instructions with winner message
             draw_text(winner_msg, font_big, (0, 0, 0),
                       (WIDTH // 2, 180))
-            draw_text("Press SPACE to play again, ESC to quit",
-                      font_small, (0, 0, 0), (WIDTH // 2, 220))
 
         # Scores
         draw_text("P1", font_big, (0, 0, 0), (WIDTH // 4 - 60, 160))
