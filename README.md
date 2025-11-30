@@ -10,7 +10,7 @@ How to run the game in multiplayer (must have docker desktop):
 
 Docker commands for host:
 
-    docker build -t spam-server -f Dockerfile.server .
+    docker build -t spam-server:latest -f Dockerfile.server .
     docker run -d -p 5000:5000 --name spam-server-container spam-server
     python spam_game_online.py
     Enter server IP: 127.0.0.1
