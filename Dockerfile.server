@@ -1,0 +1,14 @@
+# Use a small Python base image
+FROM python:3.11-slim
+
+# Set working directory inside the container
+WORKDIR /app
+
+# Copy only the server code (no need for pygame, etc.)
+COPY server.py /app/
+
+# Expose the TCP port the server listens on
+EXPOSE 5000
+
+# Run the server
+CMD ["python", "server.py"]
