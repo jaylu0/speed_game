@@ -20,7 +20,6 @@ font_medium = pygame.font.Font(None, 42)
 font_small = pygame.font.Font(None, 30)
 
 # --- Key bindings for online version ---
-# Each player uses LEFT and RIGHT arrows on their own keyboard
 SPAM_KEYS = {pygame.K_LEFT, pygame.K_RIGHT}
 
 
@@ -136,7 +135,11 @@ def main():
                     running = False
                     break
 
-                # During playing phase, send "press" event
+                # SPACE starts/restarts a round (request to server)
+                if event.key == pygame.K_SPACE and state["phase"] in ("waiting", "finished"):
+                    send_json({"type": "start"})
+
+                # During playing phase, send "press" event for spam keys
                 if state["phase"] == "playing" and event.key in SPAM_KEYS:
                     send_json({"type": "press"})
 
@@ -193,7 +196,7 @@ def main():
                 winner_msg = "Tie Game!"
 
             draw_text(winner_msg, font_big, (0, 0, 0), (WIDTH // 2, 180))
-            draw_text("Press ESC to quit", font_small, (0, 0, 0),
+            draw_text("Press SPACE to play again, ESC to quit", font_small, (0, 0, 0),
                       (WIDTH // 2, 220))
 
         # Scores
@@ -222,13 +225,13 @@ def main():
         if state["player_id"] is None:
             bottom_msg = "Connecting..."
         elif phase == "waiting":
-            bottom_msg = f"Waiting for other player... You are Player {state['player_id']}."
+            bottom_msg = f"Press SPACE to start. You are Player {state['player_id']}."
         elif phase == "countdown":
             bottom_msg = "Get ready..."
         elif phase == "playing":
             bottom_msg = "Spam LEFT and RIGHT!"
-        else:
-            bottom_msg = "Press ESC to quit."
+        else:  # finished
+            bottom_msg = "Press SPACE to play again, or ESC to quit."
 
         draw_text(bottom_msg, font_small, (0, 0, 0),
                   (WIDTH // 2, HEIGHT - 40))

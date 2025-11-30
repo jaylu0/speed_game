@@ -16,7 +16,10 @@ countdown_left = COUNTDOWN_DURATION
 time_left = ROUND_DURATION
 
 clients = {}   # player_id -> socket
-lock = threading.Lock()  # for thread-safe score updates
+lock = threading.Lock()  # for thread-safe updates
+
+# Flag to indicate a player requested to start/restart a round
+start_requested = False
 
 
 def send_json(conn, obj):
@@ -33,7 +36,7 @@ def broadcast(obj):
 
 
 def handle_client(conn, player_id):
-    global scores
+    global scores, start_requested
 
     print(f"[SERVER] Player {player_id} handler started")
     file = conn.makefile("r")
@@ -51,10 +54,19 @@ def handle_client(conn, player_id):
             except json.JSONDecodeError:
                 continue
 
-            if msg.get("type") == "press":
+            msg_type = msg.get("type")
+
+            # Spam key pressed
+            if msg_type == "press":
                 with lock:
                     if phase == "playing":
                         scores[player_id] += 1
+
+            # Player pressed SPACE to start/restart
+            elif msg_type == "start":
+                with lock:
+                    # Any player can request start
+                    start_requested = True
 
     except Exception as e:
         print(f"[SERVER] Error from player {player_id}:", e)
@@ -65,62 +77,88 @@ def handle_client(conn, player_id):
 
 
 def game_loop():
+    """
+    Runs a single round: countdown -> playing -> finished.
+    Called whenever a start is requested.
+    """
     global phase, countdown_left, time_left, scores
 
-    print("[SERVER] Starting game loop")
+    print("[SERVER] Starting new round")
 
-    # Reset state
-    scores = {1: 0, 2: 0}
-    phase = "countdown"
+    # Reset state for new round
+    with lock:
+        scores = {1: 0, 2: 0}
+        phase = "countdown"
+        countdown_left = COUNTDOWN_DURATION
+        time_left = ROUND_DURATION
+
     countdown_start = time.time()
-    countdown_left = COUNTDOWN_DURATION
-    time_left = ROUND_DURATION
 
     # --- COUNTDOWN PHASE ---
-    while countdown_left > 0:
+    while True:
         now = time.time()
         elapsed = now - countdown_start
-        countdown_left = max(0.0, COUNTDOWN_DURATION - elapsed)
 
+        with lock:
+            countdown_left = max(0.0, COUNTDOWN_DURATION - elapsed)
+            local_countdown = countdown_left
+
+        # Broadcast state
         broadcast({
             "type": "state",
             "phase": "countdown",
-            "countdown_left": countdown_left,
+            "countdown_left": local_countdown,
             "time_left": time_left,
             "p1_score": scores[1],
             "p2_score": scores[2],
         })
 
+        if local_countdown <= 0.0:
+            break
+
         time.sleep(0.05)
 
     # --- PLAYING PHASE ---
-    phase = "playing"
-    round_start = time.time()
-    time_left = ROUND_DURATION
+    with lock:
+        phase = "playing"
+        time_left = ROUND_DURATION
 
-    while time_left > 0:
+    round_start = time.time()
+
+    while True:
         now = time.time()
         elapsed = now - round_start
-        time_left = max(0.0, ROUND_DURATION - elapsed)
+
+        with lock:
+            time_left = max(0.0, ROUND_DURATION - elapsed)
+            local_time_left = time_left
+            p1 = scores[1]
+            p2 = scores[2]
 
         broadcast({
             "type": "state",
             "phase": "playing",
             "countdown_left": 0.0,
-            "time_left": time_left,
-            "p1_score": scores[1],
-            "p2_score": scores[2],
+            "time_left": local_time_left,
+            "p1_score": p1,
+            "p2_score": p2,
         })
+
+        if local_time_left <= 0.0:
+            break
 
         time.sleep(0.05)
 
     # --- FINISHED PHASE ---
-    phase = "finished"
-    time_left = 0.0
+    with lock:
+        phase = "finished"
+        time_left = 0.0
+        p1 = scores[1]
+        p2 = scores[2]
 
-    if scores[1] > scores[2]:
+    if p1 > p2:
         winner = 1
-    elif scores[2] > scores[1]:
+    elif p2 > p1:
         winner = 2
     else:
         winner = 0  # tie
@@ -130,22 +168,22 @@ def game_loop():
         "phase": "finished",
         "countdown_left": 0.0,
         "time_left": 0.0,
-        "p1_score": scores[1],
-        "p2_score": scores[2],
+        "p1_score": p1,
+        "p2_score": p2,
     })
 
     broadcast({
         "type": "game_over",
-        "p1_score": scores[1],
-        "p2_score": scores[2],
+        "p1_score": p1,
+        "p2_score": p2,
         "winner": winner,
     })
 
-    print("[SERVER] Game over. Scores:", scores, "Winner:", winner)
+    print("[SERVER] Round over. Scores:", scores, "Winner:", winner)
 
 
 def main():
-    global phase
+    global phase, start_requested
 
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -162,16 +200,45 @@ def main():
         clients[player_id] = conn
         threading.Thread(target=handle_client, args=(conn, player_id), daemon=True).start()
 
-    print("[SERVER] Both players connected. Starting game in 2 seconds...")
-    phase = "waiting"
-    time.sleep(2)
+    print("[SERVER] Both players connected.")
+    with lock:
+        phase = "waiting"
+        start_requested = False
 
-    # Start the game
-    game_loop()
+    # Broadcast initial waiting state
+    broadcast({
+        "type": "state",
+        "phase": "waiting",
+        "countdown_left": COUNTDOWN_DURATION,
+        "time_left": ROUND_DURATION,
+        "p1_score": scores[1],
+        "p2_score": scores[2],
+    })
 
-    print("[SERVER] Done. Press Ctrl+C to quit.")
+    # Main loop: wait for SPACE from a player, then run a round
     while True:
-        time.sleep(1)
+        # Wait until some client sends "start"
+        while True:
+            with lock:
+                if start_requested:
+                    start_requested = False
+                    break
+            time.sleep(0.1)
+
+        # Run a round
+        game_loop()
+
+        # After a round, go back to waiting state (until SPACE again)
+        with lock:
+            phase = "waiting"
+        broadcast({
+            "type": "state",
+            "phase": "waiting",
+            "countdown_left": COUNTDOWN_DURATION,
+            "time_left": ROUND_DURATION,
+            "p1_score": scores[1],
+            "p2_score": scores[2],
+        })
 
 
 if __name__ == "__main__":
