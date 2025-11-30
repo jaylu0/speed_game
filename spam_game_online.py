@@ -5,7 +5,7 @@ import math
 import pygame
 import sys
 
-# --------- PYGAME SETUP ----------
+# Pygame setup
 pygame.init()
 
 WIDTH, HEIGHT = 900, 500
@@ -19,7 +19,7 @@ font_big = pygame.font.Font(None, 64)
 font_medium = pygame.font.Font(None, 42)
 font_small = pygame.font.Font(None, 30)
 
-# --- Key bindings for online version ---
+# Key bindings
 SPAM_KEYS = {pygame.K_LEFT, pygame.K_RIGHT}
 
 
@@ -29,7 +29,7 @@ def draw_text(text, font, color, center):
     screen.blit(surf, rect)
 
 
-# --- State received from server ---
+# Different states received from server
 state = {
     "player_id": None,
     "phase": "waiting",
@@ -103,11 +103,11 @@ def listener():
 def main():
     global sock, state
 
-    # --------- ASK USER FOR SERVER IP ----------
+    # Asking user for server IP
     SERVER_HOST = input("Enter server IP: ").strip()
     SERVER_PORT = 5000
 
-    # --------- CONNECT TO SERVER ----------
+    # Connecting to server
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         sock.connect((SERVER_HOST, SERVER_PORT))
@@ -118,7 +118,7 @@ def main():
 
     print(f"[CLIENT] Connected to server at {SERVER_HOST}:{SERVER_PORT}")
 
-    # Start listener thread
+    # Starting listener thread
     threading.Thread(target=listener, daemon=True).start()
 
     running = True
@@ -143,7 +143,7 @@ def main():
                 if state["phase"] == "playing" and event.key in SPAM_KEYS:
                     send_json({"type": "press"})
 
-        # --- Map server state to display ---
+        # Map server state to display
         phase = state["phase"]
         countdown_left = max(0.0, state["countdown_left"])
         time_left = max(0.0, state["time_left"])
@@ -152,9 +152,9 @@ def main():
         if phase == "countdown":
             display_time = int(math.ceil(countdown_left))
             if display_time in (3, 2):
-                timer_color = (255, 0, 0)      # red
+                timer_color = (255, 0, 0)      
             elif display_time == 1:
-                timer_color = (0, 180, 0)      # green
+                timer_color = (0, 180, 0)     
             else:
                 timer_color = (0, 0, 0)
 
@@ -170,13 +170,12 @@ def main():
             display_time = 10
             timer_color = (0, 0, 0)
 
-        # ---- DRAW UI ----
         screen.fill((230, 230, 230))
 
         # Title
         draw_text("SPAM GAME", font_title, (0, 0, 0), (WIDTH // 2, 60))
 
-        # --- Center text (instructions OR winner message) ---
+        # Center text (instructions OR winner message)
         if phase in ("waiting", "countdown", "playing"):
             # Original three-line description
             draw_text("TAP Left and Right arrow keys", font_medium, (0, 0, 0),

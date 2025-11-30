@@ -94,7 +94,7 @@ def game_loop():
 
     countdown_start = time.time()
 
-    # --- COUNTDOWN PHASE ---
+    # Countdown phase
     while True:
         now = time.time()
         elapsed = now - countdown_start
@@ -118,7 +118,7 @@ def game_loop():
 
         time.sleep(0.05)
 
-    # --- PLAYING PHASE ---
+    # Playing phase
     with lock:
         phase = "playing"
         time_left = ROUND_DURATION
@@ -149,7 +149,7 @@ def game_loop():
 
         time.sleep(0.05)
 
-    # --- FINISHED PHASE ---
+    # Finished phase
     with lock:
         phase = "finished"
         time_left = 0.0
@@ -215,9 +215,7 @@ def main():
         "p2_score": scores[2],
     })
 
-    # Main loop: wait for SPACE from a player, then run a round
     while True:
-        # Wait until some client sends "start"
         while True:
             with lock:
                 if start_requested:
@@ -225,11 +223,7 @@ def main():
                     break
             time.sleep(0.1)
 
-        # Run a round (handles countdown -> playing -> finished)
         game_loop()
-        # IMPORTANT: do NOT force phase back to "waiting" here.
-        # Let clients stay in "finished" until another "start" is requested.
-        # The next time someone presses SPACE, we just loop again and call game_loop().
 
 
 if __name__ == "__main__":
