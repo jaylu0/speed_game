@@ -165,11 +165,11 @@ def game_loop():
 
     broadcast({
         "type": "state",
-        "phase": "finished",
-        "countdown_left": 0.0,
-        "time_left": 0.0,
-        "p1_score": p1,
-        "p2_score": p2,
+            "phase": "finished",
+            "countdown_left": 0.0,
+            "time_left": 0.0,
+            "p1_score": p1,
+            "p2_score": p2,
     })
 
     broadcast({
@@ -225,20 +225,11 @@ def main():
                     break
             time.sleep(0.1)
 
-        # Run a round
+        # Run a round (handles countdown -> playing -> finished)
         game_loop()
-
-        # After a round, go back to waiting state (until SPACE again)
-        with lock:
-            phase = "waiting"
-        broadcast({
-            "type": "state",
-            "phase": "waiting",
-            "countdown_left": COUNTDOWN_DURATION,
-            "time_left": ROUND_DURATION,
-            "p1_score": scores[1],
-            "p2_score": scores[2],
-        })
+        # IMPORTANT: do NOT force phase back to "waiting" here.
+        # Let clients stay in "finished" until another "start" is requested.
+        # The next time someone presses SPACE, we just loop again and call game_loop().
 
 
 if __name__ == "__main__":

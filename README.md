@@ -1,4 +1,4 @@
-This game is a simple one where each player repeatedly presses the left and right button to see who can do the most in 10 seconds. When the game is loaded wait until both players are ready before pressing down on the space bar, any player can start the game. Once the game is over you can continue on playing as many times as you like. 
+This game is a simple one where each player repeatedly presses the left and right arrow key to see who can do the most in 10 seconds. When the game is loaded wait until both players are ready before pressing down on the space bar. Any player can start the game. Once the game is over it can be repeated as many times as you'd like.
 
 How to run the game in multiplayer (must have docker desktop):
 
