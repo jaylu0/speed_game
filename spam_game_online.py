@@ -176,8 +176,9 @@ def main():
         # Title
         draw_text("SPAM GAME", font_title, (0, 0, 0), (WIDTH // 2, 60))
 
-        # --- Center text ---
+        # --- Center text (instructions OR winner message) ---
         if phase in ("waiting", "countdown", "playing"):
+            # Original three-line description
             draw_text("TAP Left and Right arrow keys", font_medium, (0, 0, 0),
                       (WIDTH // 2, 150))
             draw_text("AS FAST", font_medium, (0, 0, 0),
@@ -186,8 +187,10 @@ def main():
                       (WIDTH // 2, 230))
 
         elif phase == "finished":
+            # Winner logic
             p1 = state["p1_score"]
             p2 = state["p2_score"]
+
             if p1 > p2:
                 winner_msg = "Player 1 wins!"
             elif p2 > p1:
@@ -195,9 +198,11 @@ def main():
             else:
                 winner_msg = "Tie Game!"
 
-            draw_text(winner_msg, font_big, (0, 0, 0), (WIDTH // 2, 180))
-            draw_text("Press SPACE to play again, ESC to quit", font_small, (0, 0, 0),
-                      (WIDTH // 2, 220))
+            # Replace instructions with winner message
+            draw_text(winner_msg, font_big, (0, 0, 0),
+                      (WIDTH // 2, 180))
+            draw_text("Press SPACE to play again, ESC to quit",
+                      font_small, (0, 0, 0), (WIDTH // 2, 220))
 
         # Scores
         draw_text("P1", font_big, (0, 0, 0), (WIDTH // 4 - 60, 160))
