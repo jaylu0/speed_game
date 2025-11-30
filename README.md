@@ -2,9 +2,10 @@ This game is a simple one where each player repeatedly presses the left and righ
 
 How to run the game in multiplayer:
 
-    1. On server computer (host), find its IP using ipconfig. then run 'python server.py'
+    1. On server computer (host), find its IP using ipconfig. then run the docker commands.
+    2. Then run 'python spam_game_online.py' then enter the server IP.
     2. On player computer (guest), you run 'python spam_game_online.py' then enter the host's IP address.
-    3. Enjoy the game. 
+    3. Open game tab and enjoy the game.
 
 
 Docker commands for host:
@@ -14,6 +15,7 @@ Docker commands for host:
     python spam_game_online.py
     Enter server IP: 127.0.0.1
 
-    For player that is joining:
+For player that is joining:
+
     python spam_game_online.py
     Enter server IP: (IP OF HOST FROM IPCONFIG)
