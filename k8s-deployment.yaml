@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: spam-server-deployment
 spec:
-  replicas: 1
+  replicas: 1 # using this to scale
   selector:
     matchLabels:
       app: spam-server
