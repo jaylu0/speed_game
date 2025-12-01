@@ -20,11 +20,11 @@ Docker commands for host:
 
 Kubernetes commands:
 
-    kubectl get nodes (to see if it is running correctly)
+    kubectl get nodes
 
     kubectl apply -f k8s-deployment.yaml
 
-    kubectl get pods (to check again)
+    kubectl get pods
 
 
     kubectl apply -f k8s-service-nodeport.yaml
