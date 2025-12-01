@@ -105,7 +105,8 @@ def main():
 
     # Asking user for server IP
     SERVER_HOST = input("Enter server IP: ").strip()
-    SERVER_PORT = 5000
+    port_input = input("Enter server port (5000 for local, 30500 for kubernetes): ").strip()
+    SERVER_PORT = int(port_input) if port_input else 5000
 
     # Connecting to server
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

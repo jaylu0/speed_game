@@ -18,6 +18,20 @@ Docker commands for host:
 
     Enter server IP: 127.0.0.1
 
+Kubernetes commands:
+
+    kubectl get nodes (to see if it is running correctly)
+
+    kubectl apply -f k8s-deployment.yaml
+
+    kubectl get pods (to check again)
+
+    kubectl apply -f k8s-service-nodeport.yaml
+
+    kubectl apply -f k8s-service-clusterip.yaml
+
+    kubectl get svc
+
 For player that is joining:
 
     python spam_game_online.py
