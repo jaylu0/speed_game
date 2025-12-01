@@ -26,11 +26,19 @@ Kubernetes commands:
 
     kubectl get pods (to check again)
 
+
     kubectl apply -f k8s-service-nodeport.yaml
 
     kubectl apply -f k8s-service-clusterip.yaml
 
     kubectl get svc
+
+
+    kubectl get deploy spam-server-deployment
+
+    kubectl scale deployment spam-server-deployment --replicas=3
+
+    kubectl get pods 
 
 For player that is joining:
 
